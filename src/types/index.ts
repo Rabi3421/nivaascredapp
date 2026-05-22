@@ -25,7 +25,10 @@ export interface UserProfile {
 export interface Property {
   id: string;
   title: string;
+  description?: string;
   city: string;
+  state?: string;
+  pincode?: string;
   address: string;
   rentAmount: number;
   depositAmount: number;
@@ -38,13 +41,19 @@ export interface Property {
   landlordName: string;
   landlordScore: number;
   verificationStatus: VerificationStatus;
-  status: 'available' | 'rented';
+  status: 'available' | 'rented' | 'inactive' | 'pending_review';
 }
 
 export interface Application {
   id: string;
   property: Property;
   tenantName: string;
+  landlordName?: string;
+  tenantEmail?: string;
+  tenantPhone?: string;
+  moveInDate?: string | null;
+  rejectionReason?: string;
+  interviewNotes?: string;
   tenantScore: number;
   status: ApplicationStatus;
   appliedAt: string;

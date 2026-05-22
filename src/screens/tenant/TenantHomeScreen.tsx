@@ -1,20 +1,52 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AppButton } from '../../components/AppButton';
 import { AppCard } from '../../components/AppCard';
 import { ApplicationCard } from '../../components/ApplicationCard';
+import { EmptyState } from '../../components/EmptyState';
+import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { PropertyCard } from '../../components/PropertyCard';
 import { ScoreCard } from '../../components/ScoreCard';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SectionHeader } from '../../components/SectionHeader';
 import { StatusBadge } from '../../components/StatusBadge';
-import { applications, properties, tenantProfile } from '../../data/mockData';
+import { tenantProfile } from '../../data/mockData';
+import { getMyTenantApplications } from '../../services/applications/applicationApi';
+import { getPublicProperties } from '../../services/properties/propertyApi';
 import { colors } from '../../theme/colors';
+import type { Application, Property } from '../../types';
+import { toUiApplication } from '../../types/application';
+import { toUiProperty } from '../../types/property';
 import Screen from '../shared/Screen';
 
 export default function TenantHomeScreen() {
   const navigation = useNavigation<any>();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadHome = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [propertyData, applicationData] = await Promise.all([
+        getPublicProperties({ limit: 2 }),
+        getMyTenantApplications(),
+      ]);
+      setProperties(propertyData.properties.map(toUiProperty));
+      setApplications(applicationData.map(toUiApplication).slice(0, 2));
+    } catch {
+      setProperties([]);
+      setApplications([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHome();
+  }, [loadHome]);
+
   return (
     <Screen>
       <ScreenHeader title={`Hi, ${tenantProfile.name.split(' ')[0]}`} subtitle="Track your rental trust journey." />
@@ -37,9 +69,12 @@ export default function TenantHomeScreen() {
         <AppButton title="Reviews" onPress={() => navigation.navigate('TenantReviews')} variant="outline" style={{ flex: 1 }} />
       </View>
       <SectionHeader title="Recent applications" />
-      {applications.slice(0, 1).map(item => <ApplicationCard key={item.id} application={item} />)}
+      {loading ? <LoadingSkeleton /> : null}
+      {!loading && applications.length === 0 ? <EmptyState title="No recent applications" message="Apply for a property and track it here." /> : null}
+      {!loading ? applications.map(item => <ApplicationCard key={item.id} application={item} />) : null}
       <SectionHeader title="Recommended properties" />
-      {properties.slice(0, 2).map(item => (
+      {!loading && properties.length === 0 ? <EmptyState title="No recommendations yet" message="Listings will appear here once available." /> : null}
+      {!loading && properties.map(item => (
         <PropertyCard key={item.id} property={item} onPress={() => navigation.navigate('PropertyDetails', { propertyId: item.id })} compact />
       ))}
     </Screen>

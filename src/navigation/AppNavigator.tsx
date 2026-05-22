@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import type { UserRole } from '../types';
 import type {
   AuthStackParamList,
   LandlordStackParamList,
@@ -11,6 +11,7 @@ import type {
   TenantTabParamList,
 } from './types';
 import { colors } from '../theme/colors';
+import { useAuth } from '../context/AuthContext';
 import SplashScreen from '../screens/auth/SplashScreen';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -64,19 +65,13 @@ function tabOptions() {
   };
 }
 
-function AuthNavigator({ onLoginAsRole }: { onLoginAsRole: (role: UserRole) => void }) {
+function AuthNavigator() {
   return (
     <AuthStack.Navigator screenOptions={screenOptions()}>
       <AuthStack.Screen name="Splash" component={SplashScreen} />
-      <AuthStack.Screen name="Welcome">
-        {props => <WelcomeScreen {...props} onLoginAsRole={onLoginAsRole} />}
-      </AuthStack.Screen>
-      <AuthStack.Screen name="Login">
-        {props => <LoginScreen {...props} onLoginAsRole={onLoginAsRole} />}
-      </AuthStack.Screen>
-      <AuthStack.Screen name="Register">
-        {props => <RegisterScreen {...props} onLoginAsRole={onLoginAsRole} />}
-      </AuthStack.Screen>
+      <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Register" component={RegisterScreen} />
       <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </AuthStack.Navigator>
   );
@@ -131,12 +126,20 @@ function LandlordNavigator() {
 }
 
 export default function AppNavigator() {
-  const [role, setRole] = useState<UserRole | null>(null);
+  const { role, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
       {!role ? (
-        <AuthNavigator onLoginAsRole={setRole} />
+        <AuthNavigator />
       ) : role === 'tenant' ? (
         <TenantNavigator />
       ) : (

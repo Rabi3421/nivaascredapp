@@ -1,5 +1,4 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { UserRole } from '../types';
 
 export type AuthStackParamList = {
   Splash: undefined;
@@ -43,7 +42,3 @@ export type LandlordTabParamList = {
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> =
   NativeStackScreenProps<AuthStackParamList, T>;
-
-export interface AuthActions {
-  onLoginAsRole: (role: UserRole) => void;
-}

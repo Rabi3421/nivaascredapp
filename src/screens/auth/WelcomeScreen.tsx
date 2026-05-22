@@ -2,14 +2,11 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { AppButton } from '../../components/AppButton';
 import { AppCard } from '../../components/AppCard';
-import type { AuthActions, AuthScreenProps } from '../../navigation/types';
+import type { AuthScreenProps } from '../../navigation/types';
 import { colors } from '../../theme/colors';
 import Screen from '../shared/Screen';
 
-export default function WelcomeScreen({
-  navigation,
-  onLoginAsRole,
-}: AuthScreenProps<'Welcome'> & AuthActions) {
+export default function WelcomeScreen({ navigation }: AuthScreenProps<'Welcome'>) {
   return (
     <Screen style={styles.content}>
       <View style={styles.hero}>
@@ -21,11 +18,9 @@ export default function WelcomeScreen({
       </View>
       <AppCard style={styles.card}>
         <Text style={styles.cardTitle}>Preview the mobile MVP</Text>
-        <Text style={styles.cardText}>Mock data only. API integration will be added later.</Text>
-        <AppButton title="Continue as Tenant" onPress={() => onLoginAsRole('tenant')} />
-        <AppButton title="Continue as Landlord" onPress={() => onLoginAsRole('landlord')} variant="outline" />
-        <AppButton title="Login screen" onPress={() => navigation.navigate('Login')} variant="ghost" />
-        <AppButton title="Create account" onPress={() => navigation.navigate('Register')} variant="ghost" />
+        <Text style={styles.cardText}>Sign in or create an account to enter the role-based mobile experience.</Text>
+        <AppButton title="Log in" onPress={() => navigation.navigate('Login')} />
+        <AppButton title="Create account" onPress={() => navigation.navigate('Register')} variant="outline" />
       </AppCard>
     </Screen>
   );

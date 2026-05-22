@@ -1,30 +1,62 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AppButton } from '../../components/AppButton';
 import { AppCard } from '../../components/AppCard';
 import { ApplicationCard } from '../../components/ApplicationCard';
+import { EmptyState } from '../../components/EmptyState';
+import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { ScoreCard } from '../../components/ScoreCard';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SectionHeader } from '../../components/SectionHeader';
 import { StatusBadge } from '../../components/StatusBadge';
-import { applications, landlordProfile, properties } from '../../data/mockData';
+import { landlordProfile } from '../../data/mockData';
+import { getLandlordApplications } from '../../services/applications/applicationApi';
+import { getMyProperties } from '../../services/properties/propertyApi';
 import { colors } from '../../theme/colors';
+import type { Application } from '../../types';
+import { toUiApplication } from '../../types/application';
 import Screen from '../shared/Screen';
 
 export default function LandlordHomeScreen() {
   const navigation = useNavigation<any>();
+  const [propertyCount, setPropertyCount] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadHome = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [propertyData, applicationData] = await Promise.all([
+        getMyProperties(),
+        getLandlordApplications(),
+      ]);
+      const applications = applicationData.map(toUiApplication);
+      setPropertyCount(propertyData.length);
+      setPendingRequests(applications.filter(item => item.status === 'pending').slice(0, 3));
+    } catch {
+      setPropertyCount(0);
+      setPendingRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHome();
+  }, [loadHome]);
+
   return (
     <Screen>
       <ScreenHeader title={`Hi, ${landlordProfile.name.split(' ')[0]}`} subtitle="Manage properties, applications, and trust." />
       <ScoreCard score={landlordProfile.score} grade={landlordProfile.grade} onPress={() => navigation.navigate('LandlordScore')} />
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <AppCard style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{properties.length}</Text>
+          <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{propertyCount}</Text>
           <Text style={{ color: colors.muted }}>Properties</Text>
         </AppCard>
         <AppCard style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>2</Text>
+          <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{pendingRequests.length}</Text>
           <Text style={{ color: colors.muted }}>Pending requests</Text>
         </AppCard>
       </View>
@@ -46,7 +78,9 @@ export default function LandlordHomeScreen() {
         <AppButton title="Reviews" onPress={() => navigation.navigate('LandlordReviews')} variant="outline" style={{ flex: 1 }} />
       </View>
       <SectionHeader title="Pending tenant requests" />
-      {applications.map(item => <ApplicationCard key={item.id} application={item} landlordActions />)}
+      {loading ? <LoadingSkeleton /> : null}
+      {!loading && pendingRequests.length === 0 ? <EmptyState title="No pending requests" message="New tenant applications will appear here." /> : null}
+      {!loading ? pendingRequests.map(item => <ApplicationCard key={item.id} application={item} />) : null}
     </Screen>
   );
 }

@@ -10,9 +10,17 @@ import { StatusBadge, toneForStatus } from './StatusBadge';
 export function ApplicationCard({
   application,
   landlordActions,
+  onShortlist,
+  onApprove,
+  onReject,
+  actionsDisabled,
 }: {
   application: Application;
   landlordActions?: boolean;
+  onShortlist?: () => void;
+  onApprove?: () => void;
+  onReject?: () => void;
+  actionsDisabled?: boolean;
 }) {
   return (
     <AppCard style={styles.card}>
@@ -34,11 +42,19 @@ export function ApplicationCard({
         ))}
       </View>
       <Text style={styles.message} numberOfLines={2}>{application.message}</Text>
+      {landlordActions && (application.tenantEmail || application.tenantPhone) ? (
+        <Text style={styles.message} numberOfLines={1}>
+          {[application.tenantEmail, application.tenantPhone].filter(Boolean).join(' - ')}
+        </Text>
+      ) : null}
+      {application.moveInDate ? (
+        <Text style={styles.message}>Move-in: {formatShortDate(application.moveInDate)}</Text>
+      ) : null}
       {landlordActions ? (
         <View style={styles.actions}>
-          <AppButton title="Shortlist" variant="outline" style={styles.actionButton} />
-          <AppButton title="Approve" variant="secondary" style={styles.actionButton} />
-          <AppButton title="Reject" variant="ghost" style={styles.actionButton} />
+          <AppButton title="Shortlist" variant="outline" onPress={onShortlist} disabled={actionsDisabled || application.status === 'shortlisted' || application.status === 'approved'} style={styles.actionButton} />
+          <AppButton title="Approve" variant="secondary" onPress={onApprove} disabled={actionsDisabled || application.status === 'approved'} style={styles.actionButton} />
+          <AppButton title="Reject" variant="ghost" onPress={onReject} disabled={actionsDisabled || application.status === 'rejected'} style={styles.actionButton} />
         </View>
       ) : null}
     </AppCard>
