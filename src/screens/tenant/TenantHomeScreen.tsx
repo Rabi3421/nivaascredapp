@@ -14,8 +14,10 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { tenantProfile } from '../../data/mockData';
 import { getMyTenantApplications } from '../../services/applications/applicationApi';
 import { getPublicProperties } from '../../services/properties/propertyApi';
+import { getMyScore } from '../../services/score/scoreApi';
 import { colors } from '../../theme/colors';
 import type { Application, Property } from '../../types';
+import type { ApiScore } from '../../types/score';
 import { toUiApplication } from '../../types/application';
 import { toUiProperty } from '../../types/property';
 import Screen from '../shared/Screen';
@@ -24,6 +26,7 @@ export default function TenantHomeScreen() {
   const navigation = useNavigation<any>();
   const [properties, setProperties] = useState<Property[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [score, setScore] = useState<ApiScore | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadHome = useCallback(async () => {
@@ -33,6 +36,7 @@ export default function TenantHomeScreen() {
         getPublicProperties({ limit: 2 }),
         getMyTenantApplications(),
       ]);
+      getMyScore().then(setScore).catch(() => setScore(null));
       setProperties(propertyData.properties.map(toUiProperty));
       setApplications(applicationData.map(toUiApplication).slice(0, 2));
     } catch {
@@ -50,7 +54,7 @@ export default function TenantHomeScreen() {
   return (
     <Screen>
       <ScreenHeader title={`Hi, ${tenantProfile.name.split(' ')[0]}`} subtitle="Track your rental trust journey." />
-      <ScoreCard score={tenantProfile.score} grade={tenantProfile.grade} onPress={() => navigation.navigate('TenantScore')} />
+      <ScoreCard score={score?.score ?? tenantProfile.score} grade={score?.grade ?? tenantProfile.grade} onPress={() => navigation.navigate('TenantScore')} />
       <AppCard>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View>

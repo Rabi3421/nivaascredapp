@@ -10,9 +10,15 @@ import { StatusBadge, toneForStatus } from './StatusBadge';
 export function RentalHistoryCard({
   rental,
   counterpartyLabel,
+  onReview,
+  onRequestReview,
+  actionsDisabled,
 }: {
   rental: RentalHistory;
   counterpartyLabel: 'Landlord' | 'Tenant';
+  onReview?: () => void;
+  onRequestReview?: () => void;
+  actionsDisabled?: boolean;
 }) {
   return (
     <AppCard style={styles.card}>
@@ -29,8 +35,8 @@ export function RentalHistoryCard({
         <Text style={styles.meta}>{formatShortDate(rental.startDate)} - {rental.endDate ? formatShortDate(rental.endDate) : 'Open'}</Text>
       </View>
       <View style={styles.actions}>
-        <AppButton title={`Review ${counterpartyLabel.toLowerCase()}`} variant="outline" style={styles.action} />
-        <AppButton title="Request review" variant="ghost" style={styles.action} />
+        <AppButton title={`Review ${counterpartyLabel.toLowerCase()}`} onPress={onReview} disabled={actionsDisabled} variant="outline" style={styles.action} />
+        <AppButton title="Request review" onPress={onRequestReview} disabled={actionsDisabled} variant="ghost" style={styles.action} />
       </View>
     </AppCard>
   );

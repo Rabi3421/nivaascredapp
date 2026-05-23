@@ -13,8 +13,10 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { landlordProfile } from '../../data/mockData';
 import { getLandlordApplications } from '../../services/applications/applicationApi';
 import { getMyProperties } from '../../services/properties/propertyApi';
+import { getMyScore } from '../../services/score/scoreApi';
 import { colors } from '../../theme/colors';
 import type { Application } from '../../types';
+import type { ApiScore } from '../../types/score';
 import { toUiApplication } from '../../types/application';
 import Screen from '../shared/Screen';
 
@@ -22,6 +24,7 @@ export default function LandlordHomeScreen() {
   const navigation = useNavigation<any>();
   const [propertyCount, setPropertyCount] = useState(0);
   const [pendingRequests, setPendingRequests] = useState<Application[]>([]);
+  const [score, setScore] = useState<ApiScore | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadHome = useCallback(async () => {
@@ -31,6 +34,7 @@ export default function LandlordHomeScreen() {
         getMyProperties(),
         getLandlordApplications(),
       ]);
+      getMyScore().then(setScore).catch(() => setScore(null));
       const applications = applicationData.map(toUiApplication);
       setPropertyCount(propertyData.length);
       setPendingRequests(applications.filter(item => item.status === 'pending').slice(0, 3));
@@ -49,7 +53,7 @@ export default function LandlordHomeScreen() {
   return (
     <Screen>
       <ScreenHeader title={`Hi, ${landlordProfile.name.split(' ')[0]}`} subtitle="Manage properties, applications, and trust." />
-      <ScoreCard score={landlordProfile.score} grade={landlordProfile.grade} onPress={() => navigation.navigate('LandlordScore')} />
+      <ScoreCard score={score?.score ?? landlordProfile.score} grade={score?.grade ?? landlordProfile.grade} onPress={() => navigation.navigate('LandlordScore')} />
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <AppCard style={{ flex: 1 }}>
           <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{propertyCount}</Text>

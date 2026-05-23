@@ -27,7 +27,7 @@ export default function LandlordProfileScreen() {
       </AppCard>
       <AppButton title="View score" onPress={() => navigation.navigate('LandlordScore')} />
       <AppButton title="Verification" onPress={() => navigation.navigate('LandlordVerification')} variant="outline" />
-      <AppButton title="Settings placeholder" variant="ghost" />
+      <AppButton title="Settings - Coming Soon" variant="ghost" disabled />
       <AppButton title="Logout" variant="ghost" onPress={logout} />
     </Screen>
   );
